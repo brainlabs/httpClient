@@ -1,6 +1,6 @@
 #GOLANG LIBRARY TOOLS
 1. httpclient  
-   httpclient  library very simple chaining method adn support ssl  
+   httpclient  library very simple chaining method & support ssl  
    **example:**
   ```go 
   
@@ -21,7 +21,7 @@
                           SetHeader("Channel", "tester").
                           SetTimeout(10 * time.Second).
                           //SetPemCertificate("cert/cert_rsa.pub"). // if use ssl
-                          Get("https://github.com")
+                          Get("https://74f22b8c-e29a-4ea6-8551-e2b8f388adc0.mock.pstmn.io/v3/mock")
       
       if err != nil {
           fmt.Println(err)
