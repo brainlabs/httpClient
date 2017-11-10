@@ -1,4 +1,4 @@
-#GOLANG LIBRARY TOOLS
+# GOLANG LIBRARY TOOLS
 1. httpclient  
    httpclient  library very simple chaining method & support ssl  
    **example:**
@@ -49,3 +49,7 @@
   }
   
   ```
+
+
+### Author  
+* Daud Valentino labsbrain@gmail.com 
