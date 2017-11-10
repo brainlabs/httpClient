@@ -7,8 +7,10 @@
   package main
   
   import (
-        "brainlabs/httpClient"
         "encoding/json"
+        "time"
+        
+        "brainlabs/httpClient"
   )
   
   func main(){
@@ -17,6 +19,7 @@
       rsp, err := client.
                           SetHeader("Content-Type", "application/json").
                           SetHeader("Channel", "tester").
+                          SetTimeout(10 * time.Second).
                           //SetPemCertificate("cert/cert_rsa.pub"). // if use ssl
                           Get("https://github.com")
       

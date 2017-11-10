@@ -191,6 +191,10 @@ func (this *Client) Request(method, url string, payload []byte) (*Response, erro
 		request.Header.Set(k, v)
 	}
 
+	if this.timeout < 1 {
+		this.timeout = time.Duration(10 * time.Second)
+	}
+
 	// do request client
 	client := this.createClient()
 	rsp, err := client.Do(request)
