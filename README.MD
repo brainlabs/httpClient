@@ -7,7 +7,7 @@
   package main
   
   import (
-        "buhit/httpClient"
+        "brainlabs/httpClient"
         "encoding/json"
   )
   
