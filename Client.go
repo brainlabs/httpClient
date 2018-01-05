@@ -199,11 +199,12 @@ func (c *Client) Request(method, url string, payload []byte) (*Response, error) 
 	client := c.createClient()
 	rsp, err := client.Do(request)
 
+	response.response = rsp
+
 	if err != nil {
 		return response, err
 	}
 
-	response.response = rsp
 
 	return response, nil
 }
