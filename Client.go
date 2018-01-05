@@ -28,41 +28,41 @@ func NewClient() *Client {
 }
 
 // createClient  handle http client request instance
-func (this *Client) createClient() *http.Client {
-	if this.client == nil {
-		this.client = &http.Client{
-			Transport: &this.Transport,
-			Jar:       this.Cookie,
-			Timeout:   this.timeout,
+func (c *Client) createClient() *http.Client {
+	if c.client == nil {
+		c.client = &http.Client{
+			Transport: &c.Transport,
+			Jar:       c.Cookie,
+			Timeout:   c.timeout,
 		}
 	}
 
-	return this.client
+	return c.client
 }
 
 // buildUrl  handle http client query url encode
-func (this *Client) buildUrl(url string) string {
+func (c *Client) buildUrl(url string) string {
 
-	if this.queryUrl != "" {
-		url = url + this.queryUrl
+	if c.queryUrl != "" {
+		url = url + c.queryUrl
 	}
 
 	return url
 }
 
 // SetTimeout handles http client request timeout
-func (this *Client) SetTimeout(timeout time.Duration) *Client {
-	this.timeout = timeout
-	return this
+func (c *Client) SetTimeout(timeout time.Duration) *Client {
+	c.timeout = timeout
+	return c
 }
 
 //// SetCookies handles the receipt of the cookies in a reply for the
 //// given URL.  It may or may not choose to save the cookies, depending
 //// on the jar's policy and implementation.
-//func (this *Client) SetCookies(u *url.URL, cookies []*http.Cookie) {
-//	this.lk.Lock()
-//	this.cookies[u.Host] = cookies
-//	this.lk.Unlock()
+//func (c *Client) SetCookies(u *url.URL, cookies []*http.Cookie) {
+//	c.lk.Lock()
+//	c.cookies[u.Host] = cookies
+//	c.lk.Unlock()
 //}
 //
 //// Cookies returns the cookies to send in a request for the given URL.
@@ -73,38 +73,38 @@ func (this *Client) SetTimeout(timeout time.Duration) *Client {
 //}
 
 // SetHeader  handle http client request header
-func (this *Client) SetHeader(key, value string) *Client {
+func (c *Client) SetHeader(key, value string) *Client {
 
-	if this.headers == nil {
-		this.headers = map[string]string{
+	if c.headers == nil {
+		c.headers = map[string]string{
 			key: value,
 		}
 
 	} else {
-		this.headers[key] = value
+		c.headers[key] = value
 
 	}
-	return this
+	return c
 }
 
 // SetHeaders  handle http client request headers
-func (this *Client) SetHeaders(headers map[string]string) *Client {
+func (c *Client) SetHeaders(headers map[string]string) *Client {
 
-	if this.headers == nil {
-		this.headers = headers
+	if c.headers == nil {
+		c.headers = headers
 
 	} else {
 		for k, v := range headers {
-			this.headers[k] = v
+			c.headers[k] = v
 		}
 
 	}
 
-	return this
+	return c
 }
 
 // SetPemCertificate http client request use ssl
-func (this *Client) SetPemCertificate(pemFile string) *Client {
+func (c *Client) SetPemCertificate(pemFile string) *Client {
 
 	cert, err := ioutil.ReadFile(pemFile)
 	if err != nil {
@@ -120,7 +120,7 @@ func (this *Client) SetPemCertificate(pemFile string) *Client {
 
 	defaultTransport := http.DefaultTransport.(*http.Transport)
 
-	this.Transport = http.Transport{
+	c.Transport = http.Transport{
 		TLSClientConfig:       conf,
 		Proxy:                 defaultTransport.Proxy,
 		DialContext:           defaultTransport.DialContext,
@@ -129,12 +129,12 @@ func (this *Client) SetPemCertificate(pemFile string) *Client {
 		ExpectContinueTimeout: defaultTransport.ExpectContinueTimeout,
 		TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
 	}
-	return this
+	return c
 
 }
 
 // SetQuery uri url string  http client request
-func (this *Client) SetQuery(query map[string]string) *Client {
+func (c *Client) SetQuery(query map[string]string) *Client {
 
 	queryUrl := url.Values{}
 
@@ -142,37 +142,37 @@ func (this *Client) SetQuery(query map[string]string) *Client {
 		queryUrl.Set(k, v)
 	}
 
-	this.queryUrl = "?" + queryUrl.Encode()
+	c.queryUrl = "?" + queryUrl.Encode()
 
-	return this
+	return c
 }
 
 // Get method  handle http client request
-func (this *Client) Get(url string) (*Response, error) {
+func (c *Client) Get(url string) (*Response, error) {
 
-	return this.Request("GET", this.buildUrl(url), nil)
+	return c.Request("GET", c.buildUrl(url), nil)
 }
 
 // Post method  handle http client request
-func (this *Client) Post(url string, data []byte) (*Response, error) {
+func (c *Client) Post(url string, data []byte) (*Response, error) {
 
-	return this.Request("POST", this.buildUrl(url), data)
+	return c.Request("POST", c.buildUrl(url), data)
 }
 
 // Put method  handle http client request
-func (this *Client) Put(url string, data []byte) (*Response, error) {
+func (c *Client) Put(url string, data []byte) (*Response, error) {
 
-	return this.Request("PUT", this.buildUrl(url), data)
+	return c.Request("PUT", c.buildUrl(url), data)
 }
 
 // Delete method  handle http client request
-func (this *Client) Delete(url string, data []byte) (*Response, error) {
+func (c *Client) Delete(url string, data []byte) (*Response, error) {
 
-	return this.Request("DELETE", this.buildUrl(url), data)
+	return c.Request("DELETE", c.buildUrl(url), data)
 }
 
 // Request handle http client request
-func (this *Client) Request(method, url string, payload []byte) (*Response, error) {
+func (c *Client) Request(method, url string, payload []byte) (*Response, error) {
 	var request *http.Request
 	var err error
 
@@ -187,16 +187,16 @@ func (this *Client) Request(method, url string, payload []byte) (*Response, erro
 	}
 
 	// create header
-	for k, v := range this.headers {
+	for k, v := range c.headers {
 		request.Header.Set(k, v)
 	}
 
-	if this.timeout < 1 {
-		this.timeout = time.Duration(10 * time.Second)
+	if c.timeout < 1 {
+		c.timeout = time.Duration(10 * time.Second)
 	}
 
 	// do request client
-	client := this.createClient()
+	client := c.createClient()
 	rsp, err := client.Do(request)
 
 	if err != nil {

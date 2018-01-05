@@ -12,14 +12,17 @@ type Response struct {
 	response *http.Response
 }
 
-func (this *Response) GetRaw() io.Reader {
-	return this.response.Body
+func (r *Response) GetRaw() io.Reader {
+	return r.response.Body
 }
 
 // GetFromJSON response http client
-func (this *Response) GetUnmarshalJSON(v interface{}) error {
+func (r *Response) GetUnmarshalJSON(v interface{}) error {
 
-	err := json.NewDecoder(this.response.Body).Decode(&v)
+	if r.GetStatusCode() == http.StatusRequestTimeout {
+		return http.ErrHandlerTimeout
+	}
+	err := json.NewDecoder(r.response.Body).Decode(&v)
 
 	if err != nil {
 		return err
@@ -29,9 +32,12 @@ func (this *Response) GetUnmarshalJSON(v interface{}) error {
 }
 
 // GetFromXML response http client
-func (this *Response) GetUnmarshalXML(v interface{}) error {
+func (r *Response) GetUnmarshalXML(v interface{}) error {
 
-	err := xml.NewDecoder(this.response.Body).Decode(&v)
+	if r.GetStatusCode() == http.StatusRequestTimeout {
+		return http.ErrHandlerTimeout
+	}
+	err := xml.NewDecoder(r.response.Body).Decode(&v)
 
 	if err != nil {
 		return err
@@ -41,23 +47,29 @@ func (this *Response) GetUnmarshalXML(v interface{}) error {
 }
 
 // GetStatusCode http client response
-func (this *Response) GetStatusCode() int {
-	return this.response.StatusCode
+func (r *Response) GetStatusCode() int {
+	return r.response.StatusCode
 }
 
 // GetHeader http response client
-func (this *Response) GetHeader(key string) string {
+func (r *Response) GetHeader(key string) string {
 
-	return this.response.Header.Get(key)
+	return r.response.Header.Get(key)
 }
 
 // GetAsString http response client
-func (this *Response) GetAsString() (string, error) {
-	b, err := ioutil.ReadAll(this.GetRaw())
+func (r *Response) GetAsString() (string, error) {
+	var result string
+	if r.GetStatusCode() == http.StatusRequestTimeout {
+		return result, http.ErrHandlerTimeout
+	}
+	b, err := ioutil.ReadAll(r.GetRaw())
 
 	if err != nil {
-		return "", err
+		return result, err
 	}
 
-	return string(b), nil
+	result = string(b)
+
+	return result, nil
 }
