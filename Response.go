@@ -10,6 +10,7 @@ import (
 
 type Response struct {
 	response *http.Response
+	isTimeout bool
 }
 
 func (r *Response) GetRaw() io.Reader {
@@ -55,6 +56,11 @@ func (r *Response) GetStatusCode() int {
 func (r *Response) GetHeader(key string) string {
 
 	return r.response.Header.Get(key)
+}
+
+// IsTimeout request response
+func (r *Response)IsTimeout() bool  {
+	return r.isTimeout
 }
 
 // GetAsString http response client

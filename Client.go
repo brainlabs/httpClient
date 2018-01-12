@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"net"
 )
 
 // Client http request very simple
@@ -200,6 +201,7 @@ func (c *Client) Request(method, url string, payload []byte) (*Response, error) 
 	rsp, err := client.Do(request)
 
 	response.response = rsp
+	_, response.isTimeout = err.(net.Error)
 
 	if err != nil {
 		return response, err
