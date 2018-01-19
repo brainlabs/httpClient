@@ -41,6 +41,7 @@ func (r *Response) GetUnmarshalXML(v interface{}) error {
 		return http.ErrHandlerTimeout
 	}
 	err := xml.NewDecoder(r.response.Body).Decode(&v)
+	r.response.Body.Close()
 
 	if err != nil {
 		return err
