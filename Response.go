@@ -25,6 +25,8 @@ func (r *Response) GetUnmarshalJSON(v interface{}) error {
 	}
 	err := json.NewDecoder(r.response.Body).Decode(&v)
 
+	r.response.Body.Close()
+
 	if err != nil {
 		return err
 	}
@@ -70,6 +72,8 @@ func (r *Response) GetAsString() (string, error) {
 		return result, http.ErrHandlerTimeout
 	}
 	b, err := ioutil.ReadAll(r.GetRaw())
+
+	r.response.Body.Close()
 
 	if err != nil {
 		return result, err
