@@ -38,6 +38,10 @@ func (c *Client) createClient() *http.Client {
 		}
 	}
 
+	c.client.Timeout = c.timeout
+	c.client.Jar = c.Cookie
+	c.client.Transport = &c.Transport
+
 	return c.client
 }
 
