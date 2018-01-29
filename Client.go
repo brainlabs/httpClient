@@ -192,6 +192,8 @@ func (c *Client) Request(method, url string, payload []byte) (*Response, error) 
 		request.Header.Set(k, v)
 	}
 
+	request.Header.Set("Connection", "close")
+
 	if c.timeout < 1 {
 		c.timeout = time.Duration(10 * time.Second)
 	}
