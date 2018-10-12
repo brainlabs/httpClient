@@ -19,12 +19,18 @@
       rsp, err := client.
                           SetHeader("Content-Type", "application/json").
                           SetHeader("Channel", "tester").
-                          SetTimeout(10 * time.Second).
+                          SetTimeout(3 * time.Second).
                           //SetPemCertificate("cert/cert_rsa.pub"). // if use ssl
-                          Get("https://74f22b8c-e29a-4ea6-8551-e2b8f388adc0.mock.pstmn.io/v3/mock")
+                          Get("https://httpstat.us/200?sleep=5000")
+      
+      if err != nil && rsp.IsTimeout() {
+      		fmt.Println(err)
+      		return
+      }
       
       if err != nil {
-          fmt.Println(err)
+      		fmt.Println(err)
+      		return
       }
       
       // get raw response
