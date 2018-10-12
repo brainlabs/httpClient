@@ -33,14 +33,14 @@ func NewClient() *Client {
 // createClient  handle http client request instance
 func (c *Client) createClient() *http.Client {
 	// Customize the Transport to have larger connection pool
-	defaultRoundTripper := http.DefaultTransport
-	defaultTransportPointer, ok := defaultRoundTripper.(*http.Transport)
-	if !ok {
-		log.Fatal("defaultRoundTripper not an *http.Transport")
-	}
-	defaultTransport := *defaultTransportPointer // dereference it to get a copy of the struct that the pointer points to
-	defaultTransport.MaxIdleConns = 100
-	defaultTransport.MaxIdleConnsPerHost = 100
+	//defaultRoundTripper := http.DefaultTransport
+	//defaultTransportPointer, ok := defaultRoundTripper.(*http.Transport)
+	//if !ok {
+	//	log.Fatal("defaultRoundTripper not an *http.Transport")
+	//}
+	//defaultTransport := *defaultTransportPointer // dereference it to get a copy of the struct that the pointer points to
+	//defaultTransport.MaxIdleConns = 100
+	//defaultTransport.MaxIdleConnsPerHost = 100
 
 	if c.client == nil {
 
@@ -51,11 +51,9 @@ func (c *Client) createClient() *http.Client {
 		//	Timeout:   c.timeout,
 		//}
 
-		c.client.Transport = &defaultTransport
+		//c.client.Transport = &defaultTransport
 		c.client.Timeout = c.timeout
 	}
-
-
 
 	c.client.Timeout = c.timeout
 	c.client.Jar = c.Cookie
