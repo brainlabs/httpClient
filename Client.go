@@ -25,7 +25,9 @@ type Client struct {
 
 func NewClient() *Client {
 
-	return &Client{}
+	return &Client{
+		client: http.DefaultClient,
+	}
 }
 
 // createClient  handle http client request instance
@@ -41,12 +43,19 @@ func (c *Client) createClient() *http.Client {
 	defaultTransport.MaxIdleConnsPerHost = 100
 
 	if c.client == nil {
-		c.client = &http.Client{
-			Transport: &defaultTransport,
-			Jar:       c.Cookie,
-			Timeout:   c.timeout,
-		}
+
+		c.client = http.DefaultClient
+		//c.client = &http.Client{
+		//	Transport: &defaultTransport,
+		//	Jar:       c.Cookie,
+		//	Timeout:   c.timeout,
+		//}
+
+		c.client.Transport = &defaultTransport
+		c.client.Timeout = c.timeout
 	}
+
+
 
 	c.client.Timeout = c.timeout
 	c.client.Jar = c.Cookie
