@@ -13,9 +13,15 @@ import (
 	"time"
 )
 
+var (
+	DefaultMaxIdleConns        = 100
+	DefaultMaxIdleConnsPerHost = 100
+	DefaultRequestTimeout      = 10000 * time.Millisecond
+)
+
 // Client http request very simple
 type Client struct {
-	Transport http.Transport
+	Transport *http.Transport
 	client    *http.Client
 	Cookie    http.CookieJar
 	timeout   time.Duration
@@ -23,34 +29,35 @@ type Client struct {
 	queryUrl  string
 }
 
+// NewClient http wrapper
 func NewClient() *Client {
 
-	return &Client{}
+	return &Client{
+		client: http.DefaultClient,
+	}
 }
 
 // createClient  handle http client request instance
 func (c *Client) createClient() *http.Client {
-	// Customize the Transport to have larger connection pool
-	defaultRoundTripper := http.DefaultTransport
-	defaultTransportPointer, ok := defaultRoundTripper.(*http.Transport)
-	if !ok {
-		log.Fatal("defaultRoundTripper not an *http.Transport")
-	}
-	defaultTransport := *defaultTransportPointer // dereference it to get a copy of the struct that the pointer points to
-	defaultTransport.MaxIdleConns = 100
-	defaultTransport.MaxIdleConnsPerHost = 100
 
 	if c.client == nil {
-		c.client = &http.Client{
-			Transport: &defaultTransport,
-			Jar:       c.Cookie,
-			Timeout:   c.timeout,
+		c.client = http.DefaultClient
+	}
+
+	if c.Transport == nil {
+		// Customize the Transport to have larger connection pool
+		defaultTransportPointer, ok := http.DefaultTransport.(*http.Transport)
+		if !ok {
+			log.Fatal("defaultRoundTripper not an *http.Transport")
 		}
+		defaultTransport := *defaultTransportPointer // dereference it to get a copy of the struct that the pointer points to
+		defaultTransport.MaxIdleConns = DefaultMaxIdleConns
+		defaultTransport.MaxIdleConnsPerHost = DefaultMaxIdleConnsPerHost
+		c.client.Transport = &defaultTransport
 	}
 
 	c.client.Timeout = c.timeout
 	c.client.Jar = c.Cookie
-	c.client.Transport = &c.Transport
 
 	return c.client
 }
@@ -123,7 +130,7 @@ func (c *Client) SetPemCertificate(pemFile string) *Client {
 
 	cert, err := ioutil.ReadFile(pemFile)
 	if err != nil {
-		log.Fatalf("couldn't load file pem ", err)
+		log.Fatalf("couldn't load file pem %+v", err)
 	}
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM(cert)
@@ -135,15 +142,17 @@ func (c *Client) SetPemCertificate(pemFile string) *Client {
 
 	defaultTransport := http.DefaultTransport.(*http.Transport)
 
-	c.Transport = http.Transport{
+	c.Transport = &http.Transport{
 		TLSClientConfig:       conf,
 		Proxy:                 defaultTransport.Proxy,
 		DialContext:           defaultTransport.DialContext,
-		MaxIdleConns:          defaultTransport.MaxIdleConns,
+		MaxIdleConns:          DefaultMaxIdleConns,
 		IdleConnTimeout:       defaultTransport.IdleConnTimeout,
 		ExpectContinueTimeout: defaultTransport.ExpectContinueTimeout,
 		TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
+		MaxIdleConnsPerHost:   DefaultMaxIdleConnsPerHost,
 	}
+
 	return c
 
 }
@@ -209,7 +218,7 @@ func (c *Client) Request(method, url string, payload []byte) (*Response, error) 
 	request.Header.Set("Connection", "close")
 
 	if c.timeout < 1 {
-		c.timeout = time.Duration(10 * time.Second)
+		c.timeout = time.Duration(DefaultRequestTimeout)
 	}
 
 	// do request client
@@ -217,7 +226,12 @@ func (c *Client) Request(method, url string, payload []byte) (*Response, error) 
 	rsp, err := client.Do(request)
 
 	response.response = rsp
-	_, response.isTimeout = err.(net.Error)
+
+	errNet, ok := err.(net.Error);
+	if ok && errNet.Timeout() {
+		response.isTimeout = ok
+		response.statusCode = http.StatusRequestTimeout
+	}
 
 	if err != nil {
 		return response, err
