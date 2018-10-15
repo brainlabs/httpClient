@@ -130,7 +130,7 @@ func (c *Client) SetPemCertificate(pemFile string) *Client {
 
 	cert, err := ioutil.ReadFile(pemFile)
 	if err != nil {
-		log.Fatalf("couldn't load file pem ", err)
+		log.Fatalf("couldn't load file pem %+v", err)
 	}
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM(cert)
@@ -152,6 +152,7 @@ func (c *Client) SetPemCertificate(pemFile string) *Client {
 		TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
 		MaxIdleConnsPerHost:   DefaultMaxIdleConnsPerHost,
 	}
+
 	return c
 
 }
