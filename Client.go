@@ -21,7 +21,7 @@ var (
 
 // Client http request very simple
 type Client struct {
-	Transport http.Transport
+	Transport *http.Transport
 	client    *http.Client
 	Cookie    http.CookieJar
 	timeout   time.Duration
@@ -39,22 +39,25 @@ func NewClient() *Client {
 
 // createClient  handle http client request instance
 func (c *Client) createClient() *http.Client {
-	// Customize the Transport to have larger connection pool
-	defaultTransportPointer, ok := http.DefaultTransport.(*http.Transport)
-	if !ok {
-		log.Fatal("defaultRoundTripper not an *http.Transport")
-	}
-	defaultTransport := *defaultTransportPointer // dereference it to get a copy of the struct that the pointer points to
-	defaultTransport.MaxIdleConns = DefaultMaxIdleConns
-	defaultTransport.MaxIdleConnsPerHost = DefaultMaxIdleConnsPerHost
 
 	if c.client == nil {
 		c.client = http.DefaultClient
 	}
 
+	if c.Transport == nil {
+		// Customize the Transport to have larger connection pool
+		defaultTransportPointer, ok := http.DefaultTransport.(*http.Transport)
+		if !ok {
+			log.Fatal("defaultRoundTripper not an *http.Transport")
+		}
+		defaultTransport := *defaultTransportPointer // dereference it to get a copy of the struct that the pointer points to
+		defaultTransport.MaxIdleConns = DefaultMaxIdleConns
+		defaultTransport.MaxIdleConnsPerHost = DefaultMaxIdleConnsPerHost
+		c.client.Transport = &defaultTransport
+	}
+
 	c.client.Timeout = c.timeout
 	c.client.Jar = c.Cookie
-	c.client.Transport = &defaultTransport
 
 	return c.client
 }
@@ -139,7 +142,7 @@ func (c *Client) SetPemCertificate(pemFile string) *Client {
 
 	defaultTransport := http.DefaultTransport.(*http.Transport)
 
-	c.Transport = http.Transport{
+	c.Transport = &http.Transport{
 		TLSClientConfig:       conf,
 		Proxy:                 defaultTransport.Proxy,
 		DialContext:           defaultTransport.DialContext,
