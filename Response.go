@@ -13,6 +13,7 @@ type Response struct {
 	response   *http.Response
 	isTimeout  bool
 	statusCode int
+	body       io.Reader
 }
 
 var noReader = &emptyReader{}
@@ -21,21 +22,33 @@ var noReader = &emptyReader{}
 type emptyReader struct {
 }
 
+func NewResponse(rsp *http.Response) *Response {
+	x := &Response{
+		response: rsp,
+	}
+	x.initialize()
+	return x
+}
+
+func (r *Response) initialize() {
+	if r.response != nil {
+		r.statusCode = r.response.StatusCode
+		r.body = r.response.Body
+		r.response.Body.Close()
+	}
+}
+
 func (ep *emptyReader) Read(p []byte) (n int, err error) {
-	return 0, fmt.Errorf("the reponse of request  is nil")
+	return 0, fmt.Errorf("the reponse of request is nil")
 }
 
 func (r *Response) GetRaw() io.Reader {
 
-	if r.response == nil {
+	if r.body == nil {
 		return noReader
 	}
 
-	bd := r.response.Body
-
-	r.response.Body.Close()
-
-	return  bd
+	return r.body
 }
 
 // GetFromJSON response http client
@@ -72,10 +85,6 @@ func (r *Response) GetUnmarshalXML(v interface{}) error {
 
 // GetStatusCode http client response
 func (r *Response) GetStatusCode() int {
-
-	if r.response != nil {
-		r.statusCode = r.response.StatusCode
-	}
 	return r.statusCode
 }
 

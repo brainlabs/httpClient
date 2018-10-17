@@ -200,14 +200,14 @@ func (c *Client) Request(method, url string, payload []byte) (*Response, error) 
 	var request *http.Request
 	var err error
 
-	response := &Response{}
+
 
 	method = strings.ToUpper(method)
 	request, err = http.NewRequest(method, url, bytes.NewBuffer(payload))
 
 	// if make request error
 	if err != nil {
-		return response, err
+		return NewResponse(nil), err
 	}
 
 	// create header
@@ -225,7 +225,7 @@ func (c *Client) Request(method, url string, payload []byte) (*Response, error) 
 	client := c.createClient()
 	rsp, err := client.Do(request)
 
-	response.response = rsp
+	response := NewResponse(rsp)
 
 	errNet, ok := err.(net.Error);
 	if ok && errNet.Timeout() {
