@@ -34,7 +34,6 @@ func (r *Response) initialize() {
 	if r.response != nil {
 		r.statusCode = r.response.StatusCode
 		r.body = r.response.Body
-		r.response.Body.Close()
 	}
 }
 
