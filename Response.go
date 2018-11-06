@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -13,7 +12,8 @@ type Response struct {
 	response   *http.Response
 	isTimeout  bool
 	statusCode int
-	body       io.Reader
+	byteBody   []byte
+	err        error
 }
 
 var noReader = &emptyReader{}
@@ -33,8 +33,8 @@ func NewResponse(rsp *http.Response) *Response {
 func (r *Response) initialize() {
 	if r.response != nil {
 		r.statusCode = r.response.StatusCode
-		r.body = r.response.Body
-		r.response.Body.Close()
+		r.byteBody, r.err = ioutil.ReadAll(r.GetRaw())
+		defer r.response.Body.Close()
 	}
 }
 
@@ -42,13 +42,9 @@ func (ep *emptyReader) Read(p []byte) (n int, err error) {
 	return 0, fmt.Errorf("the reponse of request is nil")
 }
 
-func (r *Response) GetRaw() io.Reader {
+func (r *Response) GetRaw() []byte {
 
-	if r.body == nil {
-		return noReader
-	}
-
-	return r.body
+	return r.byteBody
 }
 
 // GetFromJSON response http client
@@ -57,8 +53,11 @@ func (r *Response) GetUnmarshalJSON(v interface{}) error {
 	if r.GetStatusCode() == http.StatusRequestTimeout {
 		return http.ErrHandlerTimeout
 	}
+	if r.err != nil {
+		return r.err
+	}
 
-	err := json.NewDecoder(r.GetRaw()).Decode(&v)
+	err := json.Unmarshal(r.byteBody, &v)
 
 	if err != nil {
 		return err
@@ -74,7 +73,11 @@ func (r *Response) GetUnmarshalXML(v interface{}) error {
 		return http.ErrHandlerTimeout
 	}
 
-	err := xml.NewDecoder(r.GetRaw()).Decode(&v)
+	if r.err != nil {
+		return r.err
+	}
+
+	err := xml.Unmarshal(r.byteBody, &v)
 
 	if err != nil {
 		return err
@@ -111,13 +114,7 @@ func (r *Response) GetAsString() (string, error) {
 		return result, http.ErrHandlerTimeout
 	}
 
-	b, err := ioutil.ReadAll(r.GetRaw())
+	result = string(r.byteBody)
 
-	if err != nil {
-		return result, err
-	}
-
-	result = string(b)
-
-	return result, nil
+	return result, r.err
 }
